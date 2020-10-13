@@ -6,7 +6,7 @@ use warnings;
 our $VERSION = '1.0.0';
 
 use base qw(Exporter);
-our @EXPORT_OK = qw/ulid binary_ulid ulid_date ulid_to_uuid uuid_to_ulid/;
+our @EXPORT_OK   = qw/ulid binary_ulid ulid_date ulid_to_uuid uuid_to_ulid/;
 our %EXPORT_TAGS = ( 'all' => \@EXPORT_OK );
 
 use Time::HiRes qw/time/;
@@ -21,37 +21,36 @@ use constant BI_2_32 => Math::BigInt->new('4294967296');
 use constant BI_2_48 => Math::BigInt->new('281474976710656');
 use constant BI_2_64 => Math::BigInt->new('18446744073709551616');
 
-
 sub ulid {
-    my ($ts, $rand) = _ulid(shift);
-    return sprintf('%010s%016s', encode_base32(''.$ts), encode_base32(''.$rand));
+    my ( $ts, $rand ) = _ulid(shift);
+    return sprintf( '%010s%016s', encode_base32( '' . $ts ), encode_base32( '' . $rand ) );
 }
 
 sub binary_ulid {
-    my ($ts, $rand) = _ulid(shift);
-    return _pack($ts, $rand);
+    my ( $ts, $rand ) = _ulid(shift);
+    return _pack( $ts, $rand );
 }
 
 sub ulid_date {
     my $ulid = shift;
     die "ulid_date() needs a normal or binary ULID as parameter" unless $ulid;
-    my ($ts, $rand) = _ulid($ulid);
+    my ( $ts, $rand ) = _ulid($ulid);
     $ts = _bint($ts);
-    return DateTime->from_epoch(epoch=>$ts / 1000);
+    return DateTime->from_epoch( epoch => $ts / 1000 );
 }
 
 sub ulid_to_uuid {
     my $ulid = shift or die "Need ULID to convert";
-    my ($ts, $rand) = _ulid($ulid);
-    my $bin = _pack($ts, $rand);
-    return _uuid_bin2str($bin)
+    my ( $ts, $rand ) = _ulid($ulid);
+    my $bin = _pack( $ts, $rand );
+    return _uuid_bin2str($bin);
 }
 
 sub uuid_to_ulid {
-    my $uuid = shift or die "Need UUID to convert";
+    my $uuid     = shift or die "Need UUID to convert";
     my $bin_uuid = _uuid_str2bin($uuid);
-    my ($ts, $rand) = _ulid($bin_uuid);
-    return sprintf('%010s%016s', encode_base32(''.$ts), encode_base32(''.$rand));
+    my ( $ts, $rand ) = _ulid($bin_uuid);
+    return sprintf( '%010s%016s', encode_base32( '' . $ts ), encode_base32( '' . $rand ) );
 }
 
 sub _uuid_bin2str {
@@ -59,12 +58,11 @@ sub _uuid_bin2str {
     use bytes;
     return $uuid if length($uuid) == 36;
     die "Invalid uuid" unless length $uuid == 16;
-    my @offsets = (4, 2, 2, 2, 6);
+    my @offsets = ( 4, 2, 2, 2, 6 );
     return join(
-        '-',
-        map { unpack 'H*', $_ }
-        map { substr $uuid, 0, $_, ''}
-        @offsets);
+        '-', map { unpack 'H*', $_ }
+            map { substr $uuid, 0, $_, '' } @offsets
+    );
 }
 
 sub _uuid_str2bin {
@@ -78,21 +76,19 @@ sub _uuid_str2bin {
 sub _ulid {
     my $arg = shift;
     my $ts;
-    if ($arg && ref $arg && $arg->isa('DateTime')) {
-        $ts = int($arg->hires_epoch * 1000);
-    }
-    elsif ($arg && length($arg) == 16) {
+    if ( $arg && ref $arg && $arg->isa('DateTime') ) {
+        $ts = int( $arg->hires_epoch * 1000 );
+    } elsif ( $arg && length($arg) == 16 ) {
         return _unpack($arg);
-    }
-    elsif ($arg) {
+    } elsif ($arg) {
         $arg = _normalize($arg);
         die "Invalid ULID supplied: wrong length" unless length($arg) == 26;
-        my ($ts_part, $rand_part) = ($arg =~ /^(.{10})(.{16})$/);
-        return (decode_base32($ts_part), decode_base32($rand_part));
+        my ( $ts_part, $rand_part ) = ( $arg =~ /^(.{10})(.{16})$/ );
+        return ( decode_base32($ts_part), decode_base32($rand_part) );
     }
-    $ts ||= int(time() * 1000);
+    $ts ||= int( time() * 1000 );
     my $rand = _bigrand();
-    return ($ts, $rand);
+    return ( $ts, $rand );
 }
 
 sub _normalize {
@@ -103,32 +99,33 @@ sub _normalize {
 }
 
 sub _pack {
-    my ($ts, $rand) = @_;
+    my ( $ts, $rand ) = @_;
     $rand = _bint($rand) unless ref $rand && $rand->isa('Math::BigInt');
-    my $t1 = int($ts / 2**16);
+    my $t1 = int( $ts / 2**16 );
     my $t2 = $ts % 2**16;
     my $r1 = $rand >> 64;
-    my $r2 = ($rand % BI_2_64) >> 32;
+    my $r2 = ( $rand % BI_2_64 ) >> 32;
     my $r3 = $rand % BI_2_32;
-    return pack('NnnNN', $t1, $t2, $r1, $r2, $r3);
+    return pack( 'NnnNN', $t1, $t2, $r1, $r2, $r3 );
 }
 
 sub _unpack {
-    my ($t1, $t2, $r1, $r2, $r3) = unpack('NnnNN', shift);
-    my $ts = _bint($t1) * 2**16 + $t2;
+    my ( $t1, $t2, $r1, $r2, $r3 ) = unpack( 'NnnNN', shift );
+    my $ts   = _bint($t1) * 2**16 + $t2;
     my $rand = _bint($r1) * BI_2_64 + _bint($r2) * BI_2_32 + _bint($r3);
-    return ($ts, $rand);
+    return ( $ts, $rand );
 }
 
-sub _bint { Math::BigInt->new('' . shift) }
+sub _bint { Math::BigInt->new( '' . shift ) }
 
 sub _bigrand {
+
     # 80-bit random bigint.
     # Note that irand() is not reliable for bounds above 2**32.
-    my $r1 = _bint(irand(2**32));
-    my $r2 = _bint(irand(2**32));
-    my $r3 = _bint(irand(2**16));
-    return ($r1 * BI_2_48) + ($r2 * 2**16) + $r3;
+    my $r1 = _bint( irand( 2**32 ) );
+    my $r2 = _bint( irand( 2**32 ) );
+    my $r3 = _bint( irand( 2**16 ) );
+    return ( $r1 * BI_2_48 ) + ( $r2 * 2**16 ) + $r3;
 }
 
 1;
