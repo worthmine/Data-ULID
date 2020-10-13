@@ -126,7 +126,7 @@ validate non-random information (i.e. timestamp, MAC address or namespace).
 
 # DEPENDENCIES
 
-[Math::Random::Secure](https://metacpan.org/pod/Math::Random::Secure), [Encode::Base32::GMP](https://metacpan.org/pod/Encode::Base32::GMP).
+[Math::Random::Secure](https://metacpan.org/pod/Math%3A%3ARandom%3A%3ASecure), [Encode::Base32::GMP](https://metacpan.org/pod/Encode%3A%3ABase32%3A%3AGMP).
 
 # AUTHOR
 

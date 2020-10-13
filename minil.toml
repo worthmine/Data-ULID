@@ -1,0 +1,4 @@
+author = "Baldur Kristinsson <baldur.kristinsson@gmail.com>"
+license = "Perl_5"
+name = "Data-ULID"
+version = "1.0.0"
