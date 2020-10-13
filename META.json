@@ -78,7 +78,8 @@
    "x_contributors" : [
       "Alexandr Ciornii <alexchorny@gmail.com>",
       "Baldur Kristinsson <baldur.kristinsson@gmail.com>",
-      "Baldur Kristinsson <bk@mbl.is>"
+      "Baldur Kristinsson <bk@mbl.is>",
+      "worthmine <worthmine@gmail.com>"
    ],
    "x_serialization_backend" : "JSON::PP version 4.05",
    "x_static_install" : 1

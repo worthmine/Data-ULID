@@ -32,11 +32,14 @@ sub binary_ulid {
 }
 
 sub ulid_date {
-    my $ulid = shift;
+    my $ulid     = shift;
+    my %args     = @_ if @_ >= 2;
+    my $timezone = shift || 'UTC';
+    $timezone = $args{'time_zone'} if exists $args{'time_zone'};
     die "ulid_date() needs a normal or binary ULID as parameter" unless $ulid;
     my ( $ts, $rand ) = _ulid($ulid);
     $ts = _bint($ts);
-    return DateTime->from_epoch( epoch => $ts / 1000 );
+    return DateTime->from_epoch( epoch => $ts / 1000, time_zone => $timezone );
 }
 
 sub ulid_to_uuid {
